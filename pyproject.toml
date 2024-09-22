@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "monocorpus_models"
+version = "0.0.1"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+description = "A package for working with Monocorpus models"
+readme = "README.md"
+dependencies = [
+    "shillelagh[gsheetsapi]==1.2.28",
+    "sqlalchemy",
+    "sqlalchemy.orm",
+    "google_auth_oauthlib",
+    "google-auth",
+    "google-auth-httplib2",
+    "google-api-python-client"
+]
+
+[project.urls]
+Homepage = "https://github.com/tans1q/monocorpus-models"
+Issues = "https://github.com/tans1q/monocorpus-models/issues"
