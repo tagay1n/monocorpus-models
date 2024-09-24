@@ -4,11 +4,11 @@ import google.auth.transport.requests
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from sqlalchemy import Column, Integer, DateTime, String, Boolean
-from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy.sql import func
 from sqlalchemy import select, insert, update
 from sqlalchemy.engine import create_engine
+from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Session as _Session
+from sqlalchemy.sql import func
 
 # The OAuth 2.0 scopes we need.
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive.readonly']
@@ -41,6 +41,7 @@ def get_credentials(credentials_file='credentials.json', token_file='token.json'
         raise ValueError('No refresh token found in credentials')
     return creds
 
+
 class Base(DeclarativeBase):
     pass
 
@@ -62,9 +63,18 @@ class Document(Base):
     translated = Column(Boolean)
     pages_count = Column(Integer)
     created_at = Column(DateTime, default=func.now())
+    completeness = Column(Integer)
 
     def __repr__(self):
-        return f"<Document(md5={self.md5}, mime_type={self.mime_type}, names={self.names}, ocr={self.ocr}, ya_public_url={self.ya_public_url}, ya_public_key={self.ya_public_key}, text_extracted={self.text_extracted}, annotation_completed={self.annotation_completed}, sent_for_annotation={self.sent_for_annotation}, language={self.language}, genre={self.genre}, translated={self.translated}, pages_count={self.pages_count}, created_at={self.created_at})>"
+        """
+        Represents every property of the Document object
+        :return: string representation of the Document object
+        """
+        return f"Document(md5={self.md5}, mime_type={self.mime_type}, names={self.names}, ocr={self.ocr}, " \
+               f"ya_public_url={self.ya_public_url}, ya_public_key={self.ya_public_key}, text_extracted={self.text_extracted}, " \
+               f"annotation_completed={self.annotation_completed}, sent_for_annotation={self.sent_for_annotation}, " \
+               f"language={self.language}, genre={self.genre}, translated={self.translated}, " \
+               f"pages_count={self.pages_count}, created_at={self.created_at}, completeness={self.completeness})"
 
 
 class Session:
