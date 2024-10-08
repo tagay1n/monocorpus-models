@@ -55,6 +55,15 @@ class Document(Base):
     ocr = Column(String)
     ya_public_url = Column(String)
     ya_public_key = Column(String)
+    ya_resource_id = Column(String)
+    publisher = Column(String)
+    author = Column(String)
+    title = Column(String)
+    age_limit = Column(String)
+    isbn = Column(String)
+    publish_date = Column(String)
+    summary = Column(String)
+    sources = Column(String)
     text_extracted = Column(Boolean)
     annotation_completed = Column(Boolean)
     sent_for_annotation = Column(Boolean)
@@ -71,10 +80,14 @@ class Document(Base):
         :return: string representation of the Document object
         """
         return f"Document(md5={self.md5}, mime_type={self.mime_type}, names={self.names}, ocr={self.ocr}, " \
-               f"ya_public_url={self.ya_public_url}, ya_public_key={self.ya_public_key}, text_extracted={self.text_extracted}, " \
-               f"annotation_completed={self.annotation_completed}, sent_for_annotation={self.sent_for_annotation}, " \
-               f"language={self.language}, genre={self.genre}, translated={self.translated}, " \
-               f"pages_count={self.pages_count}, created_at={self.created_at}, completeness={self.completeness})"
+                f"ya_public_url={self.ya_public_url}, ya_public_key={self.ya_public_key}, text_extracted={self.text_extracted}, " \
+                f"annotation_completed={self.annotation_completed}, sent_for_annotation={self.sent_for_annotation}, " \
+                f"language={self.language}, genre={self.genre}, translated={self.translated}, " \
+                f"pages_count={self.pages_count}, created_at={self.created_at}, completeness={self.completeness})" \
+                f"publisher={self.publisher}, author={self.author}, title={self.title}, age_limit={self.age_limit}, " \
+                f"isbn={self.isbn}, publish_date={self.publish_date}, summary={self.summary}, sources={self.sources}" \
+                f"ya_resource_id={self.ya_resource_id}"
+
 
 
 class Session:
@@ -83,13 +96,6 @@ class Session:
         self.tokens_file = tokens_file
         self.session = None
         self.creds = None
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        if self.session:
-            self.session.close()
-
-    def __enter__(self):
-        return self
 
     def select(self, stmt):
         with self._create_session() as s:
