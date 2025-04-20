@@ -51,7 +51,7 @@ class Document(Base):
 
     md5 = Column(primary_key=True, nullable=False, unique=True, index=True)
     mime_type = Column(String)
-    names = Column(String)
+    file_name = Column(String)
     ocr = Column(String)
     ya_public_url = Column(String)
     ya_public_key = Column(String)
@@ -64,29 +64,26 @@ class Document(Base):
     publish_date = Column(String)
     summary = Column(String)
     sources = Column(String)
-    text_extracted = Column(Boolean)
-    annotation_completed = Column(Boolean)
-    sent_for_annotation = Column(Boolean)
     language = Column(String)
     genre = Column(String)
     translated = Column(Boolean)
-    pages_count = Column(Integer)
+    page_count = Column(Integer)
     created_at = Column(DateTime, default=func.now())
-    completeness = Column(Integer)
+    extraction_complete = Column(Boolean)
+    edition = Column(String)
+    audience = Column(String)
+    extraction_method = Column(String)
+    udc = Column(String)
+    bbc = Column(String)
 
+    def __str__(self):
+        return '%s(%s)' % (
+            type(self).__name__,
+            ', '.join('%s=%s' % item for item in vars(self).items())
+        )
+        
     def __repr__(self):
-        """
-        Represents every property of the Document object
-        :return: string representation of the Document object
-        """
-        return f"Document(md5={self.md5}, mime_type={self.mime_type}, names={self.names}, ocr={self.ocr}, " \
-                f"ya_public_url={self.ya_public_url}, ya_public_key={self.ya_public_key}, text_extracted={self.text_extracted}, " \
-                f"annotation_completed={self.annotation_completed}, sent_for_annotation={self.sent_for_annotation}, " \
-                f"language={self.language}, genre={self.genre}, translated={self.translated}, " \
-                f"pages_count={self.pages_count}, created_at={self.created_at}, completeness={self.completeness})" \
-                f"publisher={self.publisher}, author={self.author}, title={self.title}, age_limit={self.age_limit}, " \
-                f"isbn={self.isbn}, publish_date={self.publish_date}, summary={self.summary}, sources={self.sources}" \
-                f"ya_resource_id={self.ya_resource_id}"
+        return self.__str__(self)
 
 
 
