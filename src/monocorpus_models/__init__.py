@@ -75,6 +75,9 @@ class Document(Base):
     extraction_method = Column(String)
     udc = Column(String)
     bbc = Column(String)
+    document_url = Column(String)
+    content_url = Column(String)
+    metadata_url = Column(String)
 
     def __str__(self):
         return '%s(%s)' % (
