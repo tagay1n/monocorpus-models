@@ -73,6 +73,7 @@ class Document(Base):
     extraction_method = Column(String)
     udc = Column(String)
     bbc = Column(String)
+    full = Column(Boolean)
     document_url = Column(String)
     metadata_url = Column(String)
     content_url = Column(String)
