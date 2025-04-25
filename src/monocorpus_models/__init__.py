@@ -52,7 +52,6 @@ class Document(Base):
     md5 = Column(primary_key=True, nullable=False, unique=True, index=True)
     mime_type = Column(String)
     file_name = Column(String)
-    ocr = Column(String)
     ya_public_url = Column(String)
     ya_public_key = Column(String)
     ya_resource_id = Column(String)
@@ -68,7 +67,6 @@ class Document(Base):
     genre = Column(String)
     translated = Column(Boolean)
     page_count = Column(Integer)
-    created_at = Column(DateTime, default=func.now())
     extraction_complete = Column(Boolean)
     edition = Column(String)
     audience = Column(String)
@@ -76,8 +74,11 @@ class Document(Base):
     udc = Column(String)
     bbc = Column(String)
     document_url = Column(String)
-    content_url = Column(String)
     metadata_url = Column(String)
+    content_url = Column(String)
+    upstream_metadata_url=Column(String)
+    created_at = Column(DateTime, default=func.now())
+    
 
     def __str__(self):
         return '%s(%s)' % (
