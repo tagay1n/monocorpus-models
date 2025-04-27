@@ -47,7 +47,7 @@ class Base(DeclarativeBase):
 
 
 class Document(Base):
-    __tablename__ = "https://docs.google.com/spreadsheets/d/1qHkn0ZFObgUZtQbPXtdbXa1Bf0UWPKjsyuhOZCTyNGQ/edit#gid=2063028338"
+    __tablename__ = "https://docs.google.com/spreadsheets/d/1qHkn0ZFObgUZtQbPXtdbXa1Bf0UWPKjsyuhOZCTyNGQ/edit?gid=2063028338#gid=2063028338"
 
     md5 = Column(primary_key=True, nullable=False, unique=True, index=True)
     mime_type = Column(String)
