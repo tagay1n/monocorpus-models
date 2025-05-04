@@ -70,7 +70,8 @@ class Document(Base):
     extraction_complete = Column(Boolean)
     edition = Column(String)
     audience = Column(String)
-    extraction_method = Column(String)
+    content_extraction_method = Column(String)
+    metadata_extraction_method = Column(String)
     udc = Column(String)
     bbc = Column(String)
     full = Column(Boolean)
@@ -131,3 +132,13 @@ class Session:
                 },
             )
         )
+
+
+if __name__ == "__main__":
+    from sqlalchemy import func
+    res = Session()._create_session().execute(
+        select(Document.md5, Document.ya_resource_id)
+    ).all()
+    # return { i[0]: i[1] for i in res if i[1] is not None }
+    print(res)
+    
