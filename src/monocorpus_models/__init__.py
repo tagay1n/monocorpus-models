@@ -9,6 +9,9 @@ from sqlalchemy.engine import create_engine
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Session as _Session
 from sqlalchemy.sql import func
+from sqlalchemy.pool import NullPool
+import threading
+
 
 # The OAuth 2.0 scopes we need.
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive.readonly']
@@ -47,7 +50,7 @@ class Base(DeclarativeBase):
 
 
 class Document(Base):
-    __tablename__ = "https://docs.google.com/spreadsheets/d/1qHkn0ZFObgUZtQbPXtdbXa1Bf0UWPKjsyuhOZCTyNGQ/edit?gid=2063028338#gid=2063028338"
+    __tablename__ = "https://docs.google.com/spreadsheets/d/1qHkn0ZFObgUZtQbPXtdbXa1Bf0UWPKjsyuhOZCTyNGQ/edit?sync_mode=3&gid=2063028338#gid=2063028338"
 
     md5 = Column(primary_key=True, nullable=False, unique=True, index=True)
     mime_type = Column(String)
@@ -92,53 +95,72 @@ class Document(Base):
         return self.__str__()
 
 
-
 class Session:
     def __init__(self, credentials_file="credentials.json", tokens_file="token.json"):
-        self.credentials_file = credentials_file
-        self.tokens_file = tokens_file
-        self.session = None
-        self.creds = None
-
-    def select(self, stmt):
-        with self._create_session() as s:
-            return s.scalars(stmt).all()
-
-    def upsert(self, doc):
-        with self._create_session() as s:
+        self._credentials = get_credentials(credentials_file, tokens_file)
+        self._thread_local = threading.local()
+        
+    def query(self, statement):
+        return self._get_session().scalars(statement).all()
+    
+    def track(self, statement):
+        session = self._get_session()
+        docs = self.query(statement)
+        for doc in docs:
+            yield doc
             doc_props = {k: v for k, v in doc.__dict__.items() if k in Document.__table__.columns.keys()}
-            if s.scalars(select(Document).where(Document.md5.is_(doc.md5)).limit(1)).one_or_none():
-                stmt = update(Document).where(Document.md5.is_(doc.md5))
+            statement = update(Document).where(Document.md5.is_(doc.md5))
+            statement = statement.values(doc_props)
+            session.execute(statement)
+        self._flush_session()
+
+    def upsert(self, docs: list[Document]):
+        session = self._get_session()
+        md5_values = [doc.md5 for doc in docs]
+        existing_md5s = set(session.scalars(select(Document.md5).where(Document.md5.in_(md5_values))).all())
+
+        for doc in docs:
+            doc_props = {k: v for k, v in doc.__dict__.items() if k in Document.__table__.columns.keys()}
+            if doc.md5 in existing_md5s:
+                statement = update(Document).where(Document.md5.is_(doc.md5)).values(doc_props)
             else:
-                stmt = insert(Document)
                 doc_props["md5"] = doc.md5
+                statement = insert(Document).values(doc_props)
 
-            stmt = stmt.values(doc_props)
-            s.execute(stmt)
-            s.commit()
+            session.execute(statement)
+        
+        self._flush_session()
 
-    def _create_session(self):
-        if not self.creds or not self.creds.valid:
-            self.creds = get_credentials(self.credentials_file, self.tokens_file)
+    def _flush_session(self):
+        """Flushes changes to Google Sheets by closing and resetting the thread-local session."""
+        if hasattr(self._thread_local, "session"):
+            self._thread_local.session.close()
+            del self._thread_local.session
 
-        return _Session(
-            create_engine(
+    def _get_session(self):
+        if not hasattr(self._thread_local, "session"):
+            print("creating new session")
+            if self._credentials.expired and self._credentials.refresh_token:
+                self._credentials.refresh(google.auth.transport.requests.Request())
+            engine = create_engine(
                 "shillelagh://",
                 adapters=["gsheetsapi"],
                 adapter_kwargs={
                     "gsheetsapi": {
-                        "access_token": self.creds.token
+                        "access_token": self._credentials.token
                     },
                 },
+                # this allows to flush batch changes as soon as session close
+                poolclass=NullPool
             )
-        )
-
-
-if __name__ == "__main__":
-    from sqlalchemy import func
-    res = Session()._create_session().execute(
-        select(Document.md5, Document.ya_resource_id)
-    ).all()
-    # return { i[0]: i[1] for i in res if i[1] is not None }
-    print(res)
-    
+            self._thread_local.session = _Session(engine, autoflush=False, autocommit=False)
+        return self._thread_local.session
+        
+    def __enter__(self):
+        return self
+        
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if session := getattr(self._thread_local, "session", None):
+            if exc_type:
+                session.rollback()
+            self._flush_session()
