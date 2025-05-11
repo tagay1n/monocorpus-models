@@ -50,7 +50,7 @@ class Base(DeclarativeBase):
 
 
 class Document(Base):
-    __tablename__ = "https://docs.google.com/spreadsheets/d/1qHkn0ZFObgUZtQbPXtdbXa1Bf0UWPKjsyuhOZCTyNGQ/edit?sync_mode=3&gid=2063028338#gid=2063028338"
+    __tablename__ = "https://docs.google.com/spreadsheets/d/1qHkn0ZFObgUZtQbPXtdbXa1Bf0UWPKjsyuhOZCTyNGQ/edit?sync_mode=2&gid=2063028338#gid=2063028338"
 
     md5 = Column(primary_key=True, nullable=False, unique=True, index=True)
     mime_type = Column(String)
@@ -128,8 +128,13 @@ class Session:
                 statement = insert(Document).values(doc_props)
 
             session.execute(statement)
+        session.commit()
         
-        self._flush_session()
+    def update(self, doc):
+        session = self._get_session()
+        doc_props = {k: v for k, v in doc.__dict__.items() if k in Document.__table__.columns.keys()}
+        session.execute(update(Document).where(Document.md5.is_(doc.md5)).values(doc_props))
+        session.commit()
 
     def _flush_session(self):
         """Flushes changes to Google Sheets by closing and resetting the thread-local session."""
@@ -138,10 +143,21 @@ class Session:
             del self._thread_local.session
 
     def _get_session(self):
+        # Refresh token only if needed
+        if self._credentials.expired and self._credentials.refresh_token:
+            print("refreshing token")
+            self._credentials.refresh(google.auth.transport.requests.Request())
+
+            # If session already exists, its engine still uses the old token
+            # So we must recreate the session with the new token
+            if hasattr(self._thread_local, "session"):
+                print("deleting expired session")
+                self._thread_local.session.commit()
+                self._thread_local.session.close()
+                del self._thread_local.session
+
         if not hasattr(self._thread_local, "session"):
             print("creating new session")
-            if self._credentials.expired and self._credentials.refresh_token:
-                self._credentials.refresh(google.auth.transport.requests.Request())
             engine = create_engine(
                 "shillelagh://",
                 adapters=["gsheetsapi"],
@@ -150,10 +166,9 @@ class Session:
                         "access_token": self._credentials.token
                     },
                 },
-                # this allows to flush batch changes as soon as session close
-                poolclass=NullPool
             )
-            self._thread_local.session = _Session(engine, autoflush=False, autocommit=False)
+            self._thread_local.session = _Session(engine)
+
         return self._thread_local.session
         
     def __enter__(self):
@@ -164,3 +179,10 @@ class Session:
             if exc_type:
                 session.rollback()
             self._flush_session()
+            
+            
+if __name__ == "__main__":
+    session = Session()
+    stmt = select(Document).limit(1)
+    doc = session.query(stmt)
+    print(doc)
