@@ -9,7 +9,6 @@ from sqlalchemy.engine import create_engine
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Session as _Session
 from sqlalchemy.sql import func
-from sqlalchemy.pool import NullPool
 import threading
 
 
@@ -145,19 +144,16 @@ class Session:
     def _get_session(self):
         # Refresh token only if needed
         if self._credentials.expired and self._credentials.refresh_token:
-            print("refreshing token")
             self._credentials.refresh(google.auth.transport.requests.Request())
 
             # If session already exists, its engine still uses the old token
             # So we must recreate the session with the new token
             if hasattr(self._thread_local, "session"):
-                print("deleting expired session")
                 self._thread_local.session.commit()
                 self._thread_local.session.close()
                 del self._thread_local.session
 
         if not hasattr(self._thread_local, "session"):
-            print("creating new session")
             engine = create_engine(
                 "shillelagh://",
                 adapters=["gsheetsapi"],
@@ -179,10 +175,3 @@ class Session:
             if exc_type:
                 session.rollback()
             self._flush_session()
-            
-            
-if __name__ == "__main__":
-    session = Session()
-    stmt = select(Document).limit(1)
-    doc = session.query(stmt)
-    print(doc)
