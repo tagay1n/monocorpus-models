@@ -4,7 +4,7 @@ import google.auth.transport.requests
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from sqlalchemy import Column, Integer, DateTime, String, Boolean
-from sqlalchemy import select, insert, update
+from sqlalchemy import select, insert, update, delete
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Session as _Session
@@ -133,6 +133,11 @@ class Session:
         session = self._get_session()
         doc_props = {k: v for k, v in doc.__dict__.items() if k in Document.__table__.columns.keys()}
         session.execute(update(Document).where(Document.md5.is_(doc.md5)).values(doc_props))
+        session.commit()
+        
+    def delete(self, doc):
+        session = self._get_session()
+        session.delete(doc)
         session.commit()
 
     def _flush_session(self):
