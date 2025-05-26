@@ -49,6 +49,42 @@ class Base(DeclarativeBase):
 
 
 class Document(Base):
+    """
+    Represents a document record with metadata and storage information.
+
+    Attributes:
+        md5 (str): Unique MD5 hash of the document, used as the primary key.
+        mime_type (str): MIME type of the document (e.g., 'application/pdf').
+        file_name (str): Original file name of the document.
+        ya_public_url (str): Public URL to the document on Yandex Disk.
+        ya_public_key (str): Public key for accessing the document on Yandex Disk.
+        ya_resource_id (str): Resource identifier on Yandex Disk.
+        publisher (str): Name of the document's publisher.
+        author (str): Name(s) of the document's author(s).
+        title (str): Title of the document.
+        age_limit (str): Age restriction or recommended age group.
+        isbn (str): International Standard Book Number.
+        publish_date (str): Date(mostly just year) when the document was published.
+        summary (str): Short summary or abstract of the document.
+        sources (str): Sources where document available
+        language (str): Language in which the document in format BCP-47
+        genre (str): Genre or category of the document.
+        translated (bool): Indicates if the document is a translation.
+        page_count (int): Number of pages in the document.
+        edition (str): Edition information of the document.
+        audience (str): Intended audience for the document.
+        content_extraction_method (str): Method used for content extraction.
+        metadata_extraction_method (str): Method used for metadata extraction.
+        udc (str): Universal Decimal Classification code.
+        bbc (str): Library classification code.
+        full (bool): Indicates if the document is available in complete variant, not just a slice
+        document_url (str): URL to access the document.
+        metadata_url (str): URL to access the document's metadata.
+        content_url (str): URL to access the document's content.
+        upstream_metadata_url (str): URL to upstream or original metadata source.
+        unmatched_images (int): Number of images in the document that could not be matched or processed.
+        created_at (datetime): Timestamp when the record was created.
+    """
     __tablename__ = "https://docs.google.com/spreadsheets/d/1qHkn0ZFObgUZtQbPXtdbXa1Bf0UWPKjsyuhOZCTyNGQ/edit?sync_mode=2&gid=2063028338#gid=2063028338"
 
     md5 = Column(primary_key=True, nullable=False, unique=True, index=True)
@@ -69,7 +105,6 @@ class Document(Base):
     genre = Column(String)
     translated = Column(Boolean)
     page_count = Column(Integer)
-    extraction_complete = Column(Boolean)
     edition = Column(String)
     audience = Column(String)
     content_extraction_method = Column(String)
@@ -81,8 +116,8 @@ class Document(Base):
     metadata_url = Column(String)
     content_url = Column(String)
     upstream_metadata_url=Column(String)
+    unmatched_images = Column(Integer, default=0) 
     created_at = Column(DateTime, default=func.now())
-    
 
     def __str__(self):
         return '%s(%s)' % (
