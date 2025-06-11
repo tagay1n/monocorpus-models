@@ -62,22 +62,18 @@ class Document(Base):
         publisher (str): Name of the document's publisher.
         author (str): Name(s) of the document's author(s).
         title (str): Title of the document.
-        age_limit (str): Age restriction or recommended age group.
         isbn (str): International Standard Book Number.
         publish_date (str): Date(mostly just year) when the document was published.
-        summary (str): Short summary or abstract of the document.
-        sources (str): Sources where document available
         language (str): Language in which the document in format BCP-47
         genre (str): Genre or category of the document.
         translated (bool): Indicates if the document is a translation.
         page_count (int): Number of pages in the document.
-        edition (str): Edition information of the document.
-        audience (str): Intended audience for the document.
         content_extraction_method (str): Method used for content extraction.
         metadata_extraction_method (str): Method used for metadata extraction.
         udc (str): Universal Decimal Classification code.
         bbc (str): Library classification code.
         full (bool): Indicates if the document is available in complete variant, not just a slice
+        restrict_sharing(bool): Indicates if the document is not allowed for sharing and therefore links to it is encrypted
         document_url (str): URL to access the document.
         metadata_url (str): URL to access the document's metadata.
         content_url (str): URL to access the document's content.
@@ -96,22 +92,18 @@ class Document(Base):
     publisher = Column(String)
     author = Column(String)
     title = Column(String)
-    age_limit = Column(String)
     isbn = Column(String)
     publish_date = Column(String)
-    summary = Column(String)
-    sources = Column(String)
     language = Column(String)
     genre = Column(String)
     translated = Column(Boolean)
     page_count = Column(Integer)
-    edition = Column(String)
-    audience = Column(String)
     content_extraction_method = Column(String)
     metadata_extraction_method = Column(String)
     udc = Column(String)
     bbc = Column(String)
     full = Column(Boolean)
+    sharing_restricted=Column(Boolean)
     document_url = Column(String)
     metadata_url = Column(String)
     content_url = Column(String)
