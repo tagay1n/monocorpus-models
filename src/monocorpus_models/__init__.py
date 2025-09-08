@@ -1,13 +1,14 @@
 import os
 
-import google.auth.transport.requests
 from google.oauth2.service_account import Credentials
 from sqlalchemy import Column, Integer, DateTime, String, Boolean
-from sqlalchemy import select, insert, update, delete
+from sqlalchemy import select, insert, update
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Session as _Session
 from sqlalchemy.sql import func
+import threading
+import json
 
 # The OAuth 2.0 scopes we need.
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
@@ -95,8 +96,9 @@ class Document(Base):
 
 
 class Session:
-    def __init__(self, credentials_file="credentials.json", tokens_file="token.json"):
-        self._credentials = get_credentials(credentials_file, tokens_file)
+    def __init__(self, token_file="token.json"):
+        self.token_file = token_file
+        self._credentials = get_credentials(token_file)
         self._thread_local = threading.local()
         
     def query(self, statement):
@@ -147,24 +149,15 @@ class Session:
             del self._thread_local.session
 
     def _get_session(self):
-        # Refresh token only if needed
-        if self._credentials.expired and self._credentials.refresh_token:
-            self._credentials.refresh(google.auth.transport.requests.Request())
-
-            # If session already exists, its engine still uses the old token
-            # So we must recreate the session with the new token
-            if hasattr(self._thread_local, "session"):
-                self._thread_local.session.commit()
-                self._thread_local.session.close()
-                del self._thread_local.session
-
         if not hasattr(self._thread_local, "session"):
+            with open(self.token_file) as f:
+                service_account_info = json.load(f)
             engine = create_engine(
                 "shillelagh://",
                 adapters=["gsheetsapi"],
                 adapter_kwargs={
                     "gsheetsapi": {
-                        "access_token": self._credentials.token
+                        "service_account_info": service_account_info,
                     },
                 },
             )
