@@ -44,16 +44,12 @@ class Document(Base):
         page_count (int): Number of pages in the document.
         content_extraction_method (str): Method used for content extraction.
         metadata_extraction_method (str): Method used for metadata extraction.
-        udc (str): Universal Decimal Classification code.
-        bbc (str): Library classification code.
         full (bool): Indicates if the document is available in complete variant, not just a slice
         restrict_sharing(bool): Indicates if the document is not allowed for sharing and therefore links to it is encrypted
         document_url (str): URL to access the document.
-        metadata_url (str): URL to access the document's metadata.
         content_url (str): URL to access the document's content.
+        metadata_json: (str): Metadata in JSON-LD format compatible with schema.org. 
         upstream_metadata_url (str): URL to upstream or original metadata source.
-        unmatched_images (int): Number of images in the document that could not be matched or processed.
-        created_at (datetime): Timestamp when the record was created.
     """
     __tablename__ = "https://docs.google.com/spreadsheets/d/1qHkn0ZFObgUZtQbPXtdbXa1Bf0UWPKjsyuhOZCTyNGQ/edit?sync_mode=2&gid=2063028338#gid=2063028338"
 
@@ -74,16 +70,12 @@ class Document(Base):
     page_count = Column(Integer)
     content_extraction_method = Column(String)
     metadata_extraction_method = Column(String)
-    udc = Column(String)
-    bbc = Column(String)
     full = Column(Boolean)
     sharing_restricted=Column(Boolean)
     document_url = Column(String)
-    metadata_url = Column(String)
     content_url = Column(String)
+    metadata_json = Column(String)
     upstream_metadata_url=Column(String)
-    unmatched_images = Column(Integer, default=0) 
-    created_at = Column(DateTime, default=func.now())
 
     def __str__(self):
         return '%s(%s)' % (
