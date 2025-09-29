@@ -29,7 +29,7 @@ class Document(Base):
     Attributes:
         md5 (str): Unique MD5 hash of the document, used as the primary key.
         mime_type (str): MIME type of the document (e.g., 'application/pdf').
-        file_name (str): Original file name of the document.
+        ya_path (str): Path to the document file in the storage system. Can be obsolete.
         ya_public_url (str): Public URL to the document on Yandex Disk.
         ya_public_key (str): Public key for accessing the document on Yandex Disk.
         ya_resource_id (str): Resource identifier on Yandex Disk.
@@ -55,7 +55,7 @@ class Document(Base):
 
     md5 = Column(primary_key=True, nullable=False, unique=True, index=True)
     mime_type = Column(String)
-    file_name = Column(String)
+    ya_path = Column(String)
     ya_public_url = Column(String)
     ya_public_key = Column(String)
     ya_resource_id = Column(String)
